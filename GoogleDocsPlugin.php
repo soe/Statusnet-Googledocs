@@ -176,7 +176,6 @@ class GoogleDocsPlugin extends Plugin {
         $docs = $action->arg('googledocs');
 
         for($i = 0; $i < count($docs); $i++) {
-        echo $docs['title'][$i] .'-'. $docs['filetype'][$i];
             $attachment =  new GoogledocsFile('', $docs['title'][$i], $docs['id'][$i].'#'.$notice->id.'-'.$notice->profile_id, $docs['filetype'][$i]);
                 
             $attachment->attachToNotice($notice);
