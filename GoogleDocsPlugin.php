@@ -160,7 +160,7 @@ class GoogleDocsPlugin extends Plugin {
     function onEndShowNoticeItem($noticeListItem)
     {
         
-        require_once INSTALLDIR . '/plugins/GoogleDocs/googledocsattachmentlist.php';
+        require_once INSTALLDIR . '/plugins/GoogleDocs/classes/googledocsattachmentlist.php';
         $al = new GoogledocsAttachmentList($noticeListItem->notice, $noticeListItem->out);
         $al->show();
     }
@@ -176,7 +176,7 @@ class GoogleDocsPlugin extends Plugin {
      */
     function onEndNoticeSaveWeb($action, $notice)
     {
-        require_once INSTALLDIR . '/plugins/GoogleDocs/googledocsfile.php';
+        require_once INSTALLDIR . '/plugins/GoogleDocs/classes/googledocsfile.php';
         $docs = $action->arg('googledocs');
 
         for($i = 0; $i < count($docs); $i++) {
@@ -233,24 +233,21 @@ class GoogleDocsPlugin extends Plugin {
     function getAccessToken($userid)
     {
         // @fixme - quick hack to work around persistent session
-        $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = None;
-        $_SESSION['GOOGLEDOCS_EMAIL'] = None;
-        
+        $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = False;
+        $_SESSION['GOOGLEDOCS_EMAIL'] = False;
+
         // check the credentials in session first
         if(!$_SESSION['GOOGLEDOCS_ACCESS_TOKEN']) {
+
             $flink = Foreign_link::getByUserID($userid, GOOGLEDOCS_SERVICE);
-            if(isset($flink)) {
-                $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = $flink->credentials; 
-            }
             
-            // check that the credentials are stored correctly
-            // @fixme optional, need to verify if the credentials are still working
-            if(!method_exists(unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']), 'getToken'))
-                return False;
+            if(isset($flink) && method_exists(unserialize($flink->credentials), 'getToken')) {
+                $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = $flink->credentials;
+            }  
         }
         
         $accessToken = unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']);
-        
+
         if(!$_SESSION['GOOGLEDOCS_EMAIL']) {
             $consumer = new GdataOauthClient();
             $httpClient = $accessToken->getHttpClient($consumer->getOauthOptions());

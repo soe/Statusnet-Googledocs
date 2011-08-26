@@ -98,7 +98,7 @@ class GoogledocsgetAction extends Action
     }
 
 
-    function showPage()
+    function showContent()
     {
         if($user = common_current_user()) {
             // get the notice owner's access token
@@ -110,19 +110,17 @@ class GoogledocsgetAction extends Action
                 $consumer = new GdataOauthClient();
                 $httpClient = $accessToken->getHttpClient($consumer->getOauthOptions());
                 $docsService = new Zend_Gdata_Docs($httpClient, '');
-                echo GoogleDocsPlugin::getAccessToken($user->id);
-                print_r($_SESSION);
+                
                 if(GoogleDocsPlugin::getAccessToken($user->id)) { 
                     // set ACL for authenticated user
                     $acls = $docsService->get('https://docs.google.com/feeds/acl/private/full/'.$this->fileid.'?v=2')->getBody();
                     // @fixme - do proper xml parsing check
                     preg_match('/'.$_SESSION['GOOGLEDOCS_EMAIL'].'/', $acls, $matches);
-                    print_r($matches);
                     
                     if(!$matches) {
                         $access = $this->grantAccess($docsService, $_SESSION['GOOGLEDOCS_EMAIL']);
                     }
-                    echo $_SESSION['GOOGLEDOCS_EMAIL'];
+
                     // then show the google doc view link
                     $url = 'https://docs.google.com/feeds/documents/private/full/'.str_replace(':', '%3A', $this->fileid);
                     $doc = $docsService->getDocumentListEntry($url);
@@ -133,8 +131,12 @@ class GoogledocsgetAction extends Action
                             $alternateLink = $link->getHref();
                         }
                     }
-                    echo $alternateLink;
-                      
+                    
+                    $this->element('p', '', _m('You ('.$_SESSION['GOOGLEDOCS_EMAIL'].') have been given access as a write for this Google Docs.'));
+                    
+                    $this->elementStart('p');
+                    $this->element('a', array('href'  => $alternateLink, 'title' => _m('View the attached Google Docs'), 'class' => 'button download', 'target' => '_blank'), _m('View the attached Google Docs'));            
+                    $this->elementEnd('p');  
                                               
                 } else {
                     // show link to download
