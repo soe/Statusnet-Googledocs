@@ -74,7 +74,6 @@ class GoogledocsauthorizationAction extends Action
         }
 
         // @fixme - if the google docs attachment is only for registered users
-        
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             // $this->oauth_token is the access token obtained after authorization
             // if it is empty, we are at the beginning 
@@ -95,7 +94,7 @@ class GoogledocsauthorizationAction extends Action
     function authorizeRequestToken()
     {
         $scopes = array(
-            'https://docs.google.com/feeds/'
+            'https://docs.google.com/feeds/',
         );
 
         $consumer = new GdataOauthClient();

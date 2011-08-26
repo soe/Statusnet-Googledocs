@@ -51,24 +51,8 @@ class GoogledocslistAction extends Action
         if (common_logged_in()) {
             $user  = common_current_user();
             
-            // check the credentials in session first
-            if(!$_SESSION['GOOGLEDOCS_ACCESS_TOKEN']) {
-                $flink = Foreign_link::getByUserID($user->id, GOOGLEDOCS_SERVICE);
-                if(isset($flink)) {
-                    $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = $flink->credentials; 
-                }
-                
-                // check that the credentials are stored correctly
-                // @fixme optional, need to verify if the credentials are still working
-                if(!method_exists(unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']), 'getToken')) {
-                    // ask the user to authorize
-                    $this->askAuthorization();
-                    return;
-                }
-            }
-
-            // @fixme - move the code below into a function
-            $accessToken = unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']);
+            if(!$accessToken = GoogleDocsPlugin::getAccessToken($user->id))
+                $this->askAuthorization();
 
             $consumer = new GdataOauthClient();
             $httpClient = $accessToken->getHttpClient($consumer->getOauthOptions());

@@ -109,6 +109,9 @@ class GoogleDocsPlugin extends Plugin {
             $m->connect('googledocs/get/:fileid', 
                 array('action' => 'googledocsget'),
                 array('fileid' => '.+'));
+            $m->connect('googledocs/download/:fileid/:format', 
+                array('action' => 'googledocsdownload'),
+                array('fileid' => '.+', 'format' => '[a-z]+'));
             $m->connect('googledocs/list',
                 array('action' => 'googledocslist'));                
             $m->connect('settings/googledocs', 
@@ -134,6 +137,7 @@ class GoogleDocsPlugin extends Plugin {
             case 'GoogledocsauthorizationAction':
             case 'GoogledocslistAction':
             case 'GoogledocsgetAction':
+            case 'GoogledocsdownloadAction':
                 require_once INSTALLDIR . '/plugins/GoogleDocs/lib/GdataOauthClient.php';
                 include_once $dir . '/actions/'. strtolower(mb_substr(mb_substr($cls, 0, -6), 10)) .'.php';
                 return false;
@@ -176,7 +180,7 @@ class GoogleDocsPlugin extends Plugin {
         $docs = $action->arg('googledocs');
 
         for($i = 0; $i < count($docs); $i++) {
-            $attachment =  new GoogledocsFile('', $docs['title'][$i], $docs['id'][$i].'#'.$notice->id.'-'.$notice->profile_id, $docs['filetype'][$i]);
+            $attachment =  new GoogledocsFile('', $docs['title'][$i], $docs['id'][$i], $docs['filetype'][$i]);
                 
             $attachment->attachToNotice($notice);
         }
@@ -224,6 +228,47 @@ class GoogleDocsPlugin extends Plugin {
     {
         if(common_current_user())
             $action->cssLink($this->path('css/docs.css'));
+    }
+    
+    function getAccessToken($userid)
+    {
+        // @fixme - quick hack to work around persistent session
+        $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = None;
+        $_SESSION['GOOGLEDOCS_EMAIL'] = None;
+        
+        // check the credentials in session first
+        if(!$_SESSION['GOOGLEDOCS_ACCESS_TOKEN']) {
+            $flink = Foreign_link::getByUserID($userid, GOOGLEDOCS_SERVICE);
+            if(isset($flink)) {
+                $_SESSION['GOOGLEDOCS_ACCESS_TOKEN'] = $flink->credentials; 
+            }
+            
+            // check that the credentials are stored correctly
+            // @fixme optional, need to verify if the credentials are still working
+            if(!method_exists(unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']), 'getToken'))
+                return False;
+        }
+        
+        $accessToken = unserialize($_SESSION['GOOGLEDOCS_ACCESS_TOKEN']);
+        
+        if(!$_SESSION['GOOGLEDOCS_EMAIL']) {
+            $consumer = new GdataOauthClient();
+            $httpClient = $accessToken->getHttpClient($consumer->getOauthOptions());
+            $docsService = new Zend_Gdata_Docs($httpClient, '');  
+            
+            try {
+                // get user's google email 
+                $metadata = $docsService->get('https://docs.google.com/feeds/metadata/default?v=3')->getBody();
+                preg_match('/<email>(.*)<\/email>/', $metadata, $matches);
+                $_SESSION['GOOGLEDOCS_EMAIL'] = $matches[1];
+            } catch ( Exception $e ) {
+                // @fixme - check this again
+                // user token is not valid anymore
+                return False;
+            }    
+        }
+
+        return $accessToken;
     }
 
 }

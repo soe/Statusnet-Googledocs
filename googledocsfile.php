@@ -53,7 +53,7 @@ class GoogledocsFile extends MediaFile
 
         $file->url      = common_local_url('').'/googledocs/get/'.$this->fileid;
         // @fixme - fix common_local_url mapping
-        //$file->url      = common_local_url('googledocs/get', array('fileid' => 'fakeid'));
+        //$file->url     = common_local_url('googledocs/get', array('fileid' => 'fakeid'));
         $file->size     = ''; // @fixme support file size? it is everchanging
         $file->date     = time();
         $file->mimetype = $this->mimetype;     
