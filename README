@@ -1,1 +1,77 @@
-refer to Notes.txt for now
+Structure
+=========
+
+# GoogleDocsPlugin.php 
+  * main backbone file
+	### Events: 
+		* onEndShowNoticeForm, onEndShowNoticeItem, onEndNoticeSaveWeb, 
+		   onEndLogout, onEndShowScripts, onEndShowStatusNetStyles
+	### Routes: 
+		* googledocs/authorization, googledocs/get, googledocs/list
+
+# googledocsfile.php 
+	* a light wrapper around MediaFile class
+
+# googledocsattachmentlist.php 
+	* a light wrapper around InlineAttachmentList
+
+# actions
+## get.php 
+	* set ACL for viewer then redirect to the Google Docs file
+
+## list.php 
+	* list out Google Docs for browser (Ajax)
+
+## authorization.php 
+	* Oauth
+
+# lib
+	* GdataOauthClient.php -> oauth dance wrapper for Google
+	* Zend -> using Zend Gdata and Oauth
+
+# js
+## docs.js 
+	* handle ajax for googledocs/list, jQuery UI popups for docs browser and authentication
+	* a quick hack to position Google Docs attach button, and attachment list under NoticeItem
+
+# css
+# images
+
+*****
+
+Remarks
+=======
+
+* @fixme - for items to be improved and reworked
+* JS structure needs further improvement
+* To understand exception handling and implement it
+
+*****
+
+To discuss
+==========
+
+* positioning of Google Docs attach button and attachment list without ajax
+	* might need extra hooks
+	* support of extensible widgets in Notice form and MicroApps
+
+* advice on how to restructure the application
+	* maybe for other cloud file services (Box.net, Dropbox etc)
+	* and/or integrate better with current attachment feature
+	* support multi-upload too?
+
+To do
+=====
+
+* respect config's consumer key and secret
+* improve googledocs/get logic, ACL management (both SN side and Google side)
+* Clear the documents in Notice Form after successful posting
+	* how to bind to the separate ajax call success?
+* support new document creation
+* Redirect user back to the last page after authorization
+* do @fixme
+* commenting
+* testing and debugging
+* align code with SN core coding flow
+* improve usability, and user-facing functionality
+* css touch-up, icons
